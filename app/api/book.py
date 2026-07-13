@@ -16,7 +16,7 @@ def get_book(book_id: int):
     for book in FAKE_BOOKS:
         if book["id"]==book_id:
             return book
-    raise HTTPException(status_code=404, title="Book not found")
+    raise HTTPException(status_code=404, detail="Book not found")
 
 @router.post("/")
 def create_book(book_data:dict):
@@ -32,7 +32,7 @@ def create_book(book_data:dict):
 def update_book(book_id:int, book_data:dict):
     for book in FAKE_BOOKS:
         if book["id"]==book_id:
-            book["title"]=book_data.get("title")
+            book["title"]=book_data.get("title", book["title"])
             return {"message":"book updated successfully", "book":book}
     raise HTTPException(status_code=404, detail="book not found")
 @router.delete("/{book_id}")
