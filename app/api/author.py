@@ -1,4 +1,7 @@
 from fastapi import APIRouter, HTTPException
+from schemas.authors import AuthorCreate, AuthorUpdate
+from services.author_service import author_service
+from typing import Dict, Any, List
 
 router = APIRouter(
     prefix="/authors",
@@ -8,36 +11,23 @@ FAKE_AUTHORS= [
         {"id":1,"name":"Harry Maguire"},
         {"id":2,"name":"Harry Kane"}
     ]
-@router.get("/")
+@router.get("/", response_model=List[Dict[str,Any]])
 def get_authors():
-    return FAKE_AUTHORS
+    return author_service.get_all_authors()
 
-@router.get("/{author_id}")
+@router.get("/{author_id}", response_model=Dict[str, Any])
 def get_author(author_id: int):
-    for author in FAKE_AUTHORS:
-        if author["id"]==author_id:
-            return author
-    raise HTTPException(status_code=404, detail="author not found")
-@router.post("/")
-def create_author(author_data:dict):
-    new_id=FAKE_AUTHORS[-1]["id"]+1 if FAKE_AUTHORS else 1
-    new_author={
-        "id":new_id,
-        "name":author_data.get("name")
-    }
-    FAKE_AUTHORS.append(new_author)
-    return {"message":"author create successfully", "author":new_author}
-@router.put("/{author_id}")
-def update_author(author_id:int, author_data:dict):
-    for author in FAKE_AUTHORS:
-        if author["id"]==author_id:
-            author["name"]=author_data.get("name")
-            return {"message":"author updates successfully", "author":author}
-    raise HTTPException(status_code=404, detail="author not found")
-@router.delete("/{author_id}")
+    return author_service.get_author_by_id(author_id)
+
+@router.post("/", response_model=Dict[str, Any])
+def create_author(author_data:AuthorCreate):
+    return author_service.create_author(author_data)
+
+@router.put("/{author_id}", response_model=Dict[str, Any])
+def update_author(author_id:int, author_data:AuthorUpdate):
+    return author_service.update_author(author_id, author_data)
+
+
+@router.delete("/{author_id}", response_model=Dict[str, Any])
 def delete_author(author_id:int):
-    for index, author in enumerate(FAKE_AUTHORS):
-        if author["id"]==author_id:
-            FAKE_AUTHORS.pop(index)
-            return {"message":"author deletes successfully"}
-    raise HTTPException(status_code=404, detail="author not found")
+    return author_service.delete_author(author_id)

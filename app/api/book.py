@@ -1,44 +1,29 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
+from app.schemas.books import BookCreate, BookUpdate
+from app.services.book_service import book_service
+from typing import List, Dict, Any
 
 router = APIRouter(
     prefix="/books",
     tags=["Books"]
 )
-FAKE_BOOKS=[
-        {"id":1, "title":"clean code"},
-        {"id":2, "title":"Python Crash Course"}
-    ]
-@router.get("/")
-def get_books():
-    return FAKE_BOOKS
-@router.get("/{book_id}")
-def get_book(book_id: int):
-    for book in FAKE_BOOKS:
-        if book["id"]==book_id:
-            return book
-    raise HTTPException(status_code=404, detail="Book not found")
 
-@router.post("/")
-def create_book(book_data:dict):
-    new_id=FAKE_BOOKS[-1]["id"]+1 if FAKE_BOOKS else 1
-    new_book={
-        "id":new_id, 
-        "title":book_data.get("title")
-    }
-    FAKE_BOOKS.append(new_book)
-    return {"message":"book created successfully", "book":new_book}
+@router.get("/", response_model=List[Dict[str, Any]])
+def get_books():
+    return book_service.get_all_books()
+
+@router.get("/{book_id}", response_model=Dict[str, Any])
+def get_book(book_id: int):
+    return book_service.get_book_by_id(book_id)
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_book(book_data:BookCreate):
+    return book_service.create_book(book_data)
 
 @router.put("/{book_id}")
-def update_book(book_id:int, book_data:dict):
-    for book in FAKE_BOOKS:
-        if book["id"]==book_id:
-            book["title"]=book_data.get("title", book["title"])
-            return {"message":"book updated successfully", "book":book}
-    raise HTTPException(status_code=404, detail="book not found")
+def update_book(book_id:int, book_data:BookUpdate):
+    return book_service.update_book(book_id, book_data)
+
 @router.delete("/{book_id}")
 def delete_book(book_id:int):
-    for index, book in enumerate(FAKE_BOOKS):
-        if book["id"]==book_id:
-            FAKE_BOOKS.pop(index)
-            return {"message":"book deleted successfully"}
-    raise HTTPException(status_code=404, detail="book not found")
+    return book_service.delete_book(book_id)
