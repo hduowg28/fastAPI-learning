@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
-
+from schemas.categories import CategoryCreate, CategoryUpdate
+from services.category_service import category_service
+from typing import List, Dict, Any
 router = APIRouter(
     prefix="/categories",
     tags=["Categories"]
@@ -8,41 +10,22 @@ FAKE_CATEGORY=[
         {"id":1,"name":"Programming", "description":"Books about software development"},
         {"id":2, "name":"Fiction","description":"Literature and novels"}
     ]
-@router.get("/")
+@router.get("/", response_model=List[Dict[str, Any]])
 def get_categories():
-    return FAKE_CATEGORY
+    return category_service.get_all_categories()
 
-@router.get("/{category_id}")
+@router.get("/{category_id}", response_model=Dict[str, Any])
 def get_category(category_id: int):
-    for category in FAKE_CATEGORY:
-        if category["id"]==category_id:
-            return category
-    raise HTTPException(status_code=404, detail="category not found")
+    return category_service.get_category_by_id(category_id)
 
-@router.post("/")
-def create_categories(category_data:dict):
-    new_id=FAKE_CATEGORY[-1]["id"] + 1 if FAKE_CATEGORY else 1
-    new_category={
-        "id":new_id,
-        "name":category_data.get("name"),
-        "description":category_data.get("description")
-    }
-    FAKE_CATEGORY.append(new_category)
-    return {"message":"category create successfully", "category":new_category}
+@router.post("/", response_model=Dict[str, Any])
+def create_categories(category_data:CategoryCreate):
+    return category_service.create_category(category_data)
 
-@router.put("/{category_id}")
-def update_category(category_id:int, category_data:dict):
-    for category in FAKE_CATEGORY:
-        if category["id"]==category_id:
-            category["name"]=category_data.get("name")
-            category["description"]=category_data.get("description")
-            return {"message":"category update successfully", "category": category}
-    raise HTTPException(status_code=404, detail="Category not found")
+@router.put("/{category_id}", response_model=Dict[str, Any])
+def update_category(category_id:int, category_data:CategoryUpdate):
+    return category_service.update_category(category_id, category_data)    
 
-@router.delete("/{category_id}")
+@router.delete("/{category_id}", response_model=Dict[str, Any])
 def delete_category(category_id:int):
-    for index, category in enumerate(FAKE_CATEGORY):
-        if category["id"]==category_id:
-            FAKE_CATEGORY.pop(index)
-            return {"message":"category deletes successfully"}
-    raise HTTPException(status_code=404, detail="category not found")
+    return category_service.delete_category(category_id)
