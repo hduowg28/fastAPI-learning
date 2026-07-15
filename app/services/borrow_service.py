@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from typing import Dict, Any, List
 from datetime import date
-from schemas.borrows import BorrowCreate, BorrowUpdate 
+from app.schemas.borrows import BorrowCreate, BorrowUpdate 
 
 users_mock = [
     {"id": 1, "username": "nguyenvana", "is_active": True},
