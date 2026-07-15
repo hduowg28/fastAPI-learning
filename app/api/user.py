@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import Any, List, Dict
-from services.user_service import user_service
-from schemas.users import UserCreate, UserUpdate
+from app.services.user_service import user_service
+from app.schemas.users import UserCreate, UserUpdate
 
 router = APIRouter(
     prefix="/Users",

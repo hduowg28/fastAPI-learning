@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from schemas.users import UserCreate, UserUpdate
+from app.schemas.users import UserCreate, UserUpdate
 from typing import Dict, List, Any
 
 users_mock: List[Dict[str, Any]] = [

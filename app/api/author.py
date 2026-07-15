@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from schemas.authors import AuthorCreate, AuthorUpdate
-from services.author_service import author_service
+from app.schemas.authors import AuthorCreate, AuthorUpdate
+from app.services.author_service import author_service
 from typing import Dict, Any, List
 
 router = APIRouter(

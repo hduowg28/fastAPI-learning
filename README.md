@@ -4,6 +4,8 @@ This repository documents my journey of learning FastAPI from the basics to buil
 
 The goal of this repository is not only to learn FastAPI syntax but also to understand how professional backend projects are organized.
 
+use ``` uvicorn app.main:app --reload ``` to run the application
+
 ---
 
 # Tech Stack

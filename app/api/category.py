@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from schemas.categories import CategoryCreate, CategoryUpdate
-from services.category_service import category_service
+from app.schemas.categories import CategoryCreate, CategoryUpdate
+from app.services.category_service import category_service
 from typing import List, Dict, Any
 router = APIRouter(
     prefix="/categories",

@@ -3,7 +3,7 @@ from typing import Optional
 
 class UserBase(BaseModel):
     username:str
-    email: EmailStr
+    email: EmailStr 
     role:str
     is_active: bool
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from services.borrow_service import borrow_service
-from schemas.borrows import BorrowCreate,BorrowUpdate
+from app.services.borrow_service import borrow_service
+from app.schemas.borrows import BorrowCreate,BorrowUpdate
 from typing import Dict, Any, List
 
 router = APIRouter(
