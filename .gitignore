@@ -1,6 +1,8 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 
 # Virtual environment
 venv/
@@ -9,12 +11,11 @@ venv/
 # Environment
 .env
 
-# IDE
+# VSCode
 .vscode/
-.idea/
 
 # Pytest
 .pytest_cache/
 
-# Mypy
+# mypy
 .mypy_cache/

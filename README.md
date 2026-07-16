@@ -298,8 +298,8 @@ FastAPI automatically generates
 # Learning Roadmap
 
 - [x] FastAPI Basics
-- [ ] SQLAlchemy
-- [ ] CRUD
+- [x] SQLAlchemy
+- [x] CRUD
 - [ ] Authentication
 - [ ] Docker
 - [ ] Redis
