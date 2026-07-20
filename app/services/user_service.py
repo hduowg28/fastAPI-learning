@@ -1,66 +1,60 @@
-from fastapi import HTTPException, status
-from app.schemas.users import UserCreate, UserUpdate
-from typing import Dict, List, Any
+from fastapi import HTTPException, status, Depends
+from sqlalchemy.orm import Session
+from typing import List
 
-users_mock: List[Dict[str, Any]] = [
-    {"id": 1, "username": "nguyenvana", "email": "ana@gmail.com", "role": "admin", "is_active": True},
-    {"id": 2, "username": "lethib", "email": "bthile@gmail.com", "role": "reader", "is_active": False}
-]
+from app.core.database import get_db
+from app.models.user import User
+from app.repositories.user_repository import UserRepository
+from app.schemas.users import UserCreate, UserUpdate
+
 
 class UserService:
-    def get_all_users(self)-> List[Dict[str, Any]]:
-        return users_mock
-    
-    def get_user_by_id(self, user_id: int) -> Dict[str, Any]:
-        for user in users_mock:
-            if user["id"] == user_id:
-                return user
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
-    def create_user(self, user_data: UserCreate) -> Dict[str, Any]:
-        for user in users_mock:
-            if user["username"].lower() == user_data.username.lower():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="This username is already taken"
-                )
-            if user["email"].lower() == user_data.email.lower():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="This email is already registered"
-                )
-        new_id = users_mock[-1]["id"] + 1 if users_mock else 1
-        new_user = {
-            "id": new_id,
-            "username": user_data.username,
-            "email": user_data.email,
-            "role": user_data.role,
-            "is_active": user_data.is_active
-        }
-        users_mock.append(new_user)
-        return new_user
-    def update_user(self, user_id: int, user_data: UserUpdate) -> Dict[str, Any]:
-        for user in users_mock:
-            if user["id"] == user_id:
-                # Trích xuất các trường thực sự được truyền lên
-                update_data = user_data.model_dump(exclude_unset=True)
-                for key, value in update_data.items():
-                    user[key] = value
-                return user
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
+    def __init__(self, db: Session):
+        self.repo = UserRepository(db)
 
-    def delete_user(self, user_id: int) -> Dict[str, Any]:
-        for index, user in enumerate(users_mock):
-            if user["id"] == user_id:
-                return users_mock.pop(index)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
+    def get_all_users(self) -> List[User]:
+        return self.repo.get_all()
 
-user_service = UserService()
+    def get_user_by_id(self, user_id: int) -> User:
+        user = self.repo.get_by_id(user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {user_id} not found"
+            )
+
+        return user
+
+    def create_user(self, user_data: UserCreate) -> User:
+        # Kiểm tra email đã tồn tại
+        if self.repo.get_by_email(user_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already exists"
+            )
+
+        # Kiểm tra username đã tồn tại
+        if self.repo.get_by_username(user_data.username):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username already exists"
+            )
+
+        return self.repo.create(user_data)
+
+    def update_user(self, user_id: int, user_data: UserUpdate) -> User:
+        user = self.get_user_by_id(user_id)
+
+        return self.repo.update(user, user_data)
+
+    def delete_user(self, user_id: int) -> User:
+        user = self.get_user_by_id(user_id)
+
+        return self.repo.delete(user)
+
+
+def get_user_service(
+    db: Session = Depends(get_db)
+) -> UserService:
+    return UserService(db)
