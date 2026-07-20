@@ -7,7 +7,9 @@ The goal of this repository is not only to learn FastAPI syntax but also to unde
 use ``` uvicorn app.main:app --reload ``` to run the application
 
 use ``` elembic revision --autogenerate -m "Initial migration" ``` to run alembic
+
 use ``` alembic upgrade head ``` to post table structure into database
+
 ---
 
 # Tech Stack
@@ -298,8 +300,8 @@ FastAPI automatically generates
 # Learning Roadmap
 
 - [x] FastAPI Basics
-- [ ] SQLAlchemy
-- [ ] CRUD
+- [x] SQLAlchemy
+- [x] CRUD
 - [ ] Authentication
 - [ ] Docker
 - [ ] Redis
