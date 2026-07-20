@@ -1,92 +1,94 @@
-from fastapi import HTTPException, status
-from typing import Dict, Any, List
-from datetime import date
-from app.schemas.borrows import BorrowCreate, BorrowUpdate 
+from fastapi import HTTPException, status, Depends
+from sqlalchemy.orm import Session
+from typing import List
 
-users_mock = [
-    {"id": 1, "username": "nguyenvana", "is_active": True},
-    {"id": 2, "username": "lethib", "is_active": False} 
-]
-
-
-books_mock = [
-    {"id": 1, "title": "Clean Code", "author_id": 1, "category_id": 2, "published_year": 2008},
-    {"id": 2, "title": "Python Crash Course", "author_id": 2, "category_id": 1, "published_year": 2015}
-]
+from app.core.database import get_db
+from app.models.borrow import Borrow
+from app.repositories.borrow_repository import BorrowRepository
+from app.repositories.user_repository import UserRepository
+from app.repositories.book_repository import BookRepository
+from app.schemas.borrows import BorrowCreate, BorrowUpdate
 
 
-borrows_mock: List[Dict[str, Any]] = [
-    {
-        "id": 1,
-        "user_id": 1,
-        "book_id": 1,
-        "borrow_date": date(2026, 7, 1),
-        "return_date": date(2026, 7, 15),
-        "status": "borrowed" # Đang mượn
-    }
-]
-class BorrowService: 
-    def get_all_borrows(self) -> List[Dict[str, Any]]:
-        return borrows_mock
-    
-    def create_borrow(self, borrow_data:BorrowCreate) -> Dict[str, Any]:
-        user_valid=None 
-        for u in users_mock:
-            if u["id"]==borrow_data.user_id:
-                user_valid=u
-                break
-        if not user_valid:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
-        if not user_valid["is_active"]:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user is not activated")
-        
-        book_exist=None
-        for b in books_mock:
-            if b["id"]==borrow_data.book_id:
-                book_exist=b
-                break
-        if not book_exist: 
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="book not exist")
-        for borrow in borrows_mock:
-            if (borrow["user_id"] == borrow_data.user_id and 
-                borrow["book_id"] == borrow_data.book_id and 
-                borrow["status"] == "borrowed"):
-                raise HTTPException(
-                    status_code=400, 
-                    detail="User is already borrowing this book and hasn't returned it yet"
-                )
-        new_id = borrows_mock[-1]["id"]+1 if borrows_mock else 1
-        new_borrow={
-            "id": new_id, 
-            "user_id":borrow_data.user_id,
-            "book_id":borrow_data.book_id, 
-            "borrow_date":borrow_data.borrow_date,
-            "return_date":borrow_data.return_date,
-            "status":borrow_data.status
-        }
-        borrows_mock.append(new_borrow)
-        return new_borrow
-    
-    def return_book(self, borrow_id:int) -> Dict[str, Any]:
-        for borrow in borrows_mock:
-            if borrow["id"]==borrow_id:
-                if borrow["status"]=="returned":
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Book was already returned") 
-                borrow["status"]="returned"
-                return borrow
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="book haven't borrowed yet")
-    
-    def update_borrow(self, borrow_id: int, borrow_data: BorrowUpdate) -> Dict[str, Any]:
-        for borrow in borrows_mock:
-            if borrow["id"] == borrow_id:
-                update_data = borrow_data.model_dump(exclude_unset=True)
-                
-                for key, value in update_data.items():
-                    borrow[key] = value
-                return borrow
-                
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Borrow record not found"
-        )
-borrow_service=BorrowService()
+class BorrowService:
+    def __init__(self, db: Session):
+        self.repo = BorrowRepository(db)
+        self.user_repo = UserRepository(db)
+        self.book_repo = BookRepository(db)
+
+    def get_all_borrows(self) -> List[Borrow]:
+        return self.repo.get_all()
+
+    def get_borrow_by_id(self, borrow_id: int) -> Borrow:
+        borrow = self.repo.get_by_id(borrow_id)
+
+        if not borrow:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Borrow record not found"
+            )
+
+        return borrow
+
+    def create_borrow(self, borrow_data: BorrowCreate) -> Borrow:
+        # Kiểm tra user
+        user = self.user_repo.get_by_id(borrow_data.user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not active"
+            )
+
+        # Kiểm tra book
+        book = self.book_repo.get_by_id(borrow_data.book_id)
+
+        if not book:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Book not found"
+            )
+
+        # Có thể bổ sung kiểm tra mượn trùng ở đây nếu repository hỗ trợ
+
+        return self.repo.create(borrow_data)
+
+    def update_borrow(
+        self,
+        borrow_id: int,
+        borrow_data: BorrowUpdate
+    ) -> Borrow:
+
+        borrow = self.get_borrow_by_id(borrow_id)
+
+        return self.repo.update(borrow, borrow_data)
+
+    def return_book(self, borrow_id: int) -> Borrow:
+        borrow = self.get_borrow_by_id(borrow_id)
+
+        if borrow.status == "returned":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Book was already returned"
+            )
+
+        borrow.status = "returned"
+
+        return self.repo.update(borrow, BorrowUpdate(status="returned"))
+
+    def delete_borrow(self, borrow_id: int) -> Borrow:
+        borrow = self.get_borrow_by_id(borrow_id)
+
+        return self.repo.delete(borrow)
+
+
+def get_borrow_service(
+    db: Session = Depends(get_db)
+) -> BorrowService:
+    return BorrowService(db)
