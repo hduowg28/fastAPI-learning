@@ -1,60 +1,64 @@
-from fastapi import HTTPException, status, Depends
+from typing import List, Optional
 from sqlalchemy.orm import Session
-from typing import List
 
-from app.core.database import get_db
 from app.models.user import User
-from app.repositories.user_repository import UserRepository
 from app.schemas.users import UserCreate, UserUpdate
 
 
-class UserService:
+class UserRepository:
     def __init__(self, db: Session):
-        self.repo = UserRepository(db)
+        self.db = db
 
-    def get_all_users(self) -> List[User]:
-        return self.repo.get_all()
+    def get_all(self) -> List[User]:
+        return self.db.query(User).all()
 
-    def get_user_by_id(self, user_id: int) -> User:
-        user = self.repo.get_by_id(user_id)
+    def get_by_id(self, user_id: int) -> Optional[User]:
+        return self.db.query(User).filter(User.id == user_id).first()
 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with id {user_id} not found"
-            )
+    def get_by_email(self, email: str) -> Optional[User]:
+        return (
+            self.db.query(User)
+            .filter(User.email.ilike(email))
+            .first()
+        )
 
-        return user
+    def get_by_username(self, username: str) -> Optional[User]:
+        return (
+            self.db.query(User)
+            .filter(User.username.ilike(username))
+            .first()
+        )
 
-    def create_user(self, user_data: UserCreate) -> User:
-        # Kiểm tra email đã tồn tại
-        if self.repo.get_by_email(user_data.email):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already exists"
-            )
+    def create(self, user_data: UserCreate, hashed_password: str) -> User:
+        """
+        Tạo user mới. 
+        Mật khẩu đã được băm (hashed_password) từ Service layer sẽ truyền vào đây.
+        """
+        db_user = User(
+            username=user_data.username,
+            email=user_data.email,
+            hashed_password=hashed_password,  # Thêm hashed_password
+            role=user_data.role,
+            is_active=user_data.is_active
+        )
 
-        # Kiểm tra username đã tồn tại
-        if self.repo.get_by_username(user_data.username):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already exists"
-            )
+        self.db.add(db_user)
+        self.db.commit()
+        self.db.refresh(db_user)
 
-        return self.repo.create(user_data)
+        return db_user
 
-    def update_user(self, user_id: int, user_data: UserUpdate) -> User:
-        user = self.get_user_by_id(user_id)
+    def update(self, db_user: User, update_data: UserUpdate) -> User:
+        for key, value in update_data.model_dump(exclude_unset=True).items():
+            setattr(db_user, key, value)
 
-        return self.repo.update(user, user_data)
+        self.db.commit()
+        self.db.refresh(db_user)
 
-    def delete_user(self, user_id: int) -> User:
-        user = self.get_user_by_id(user_id)
+        return db_user
 
-        return self.repo.delete(user)
+    def delete(self, db_user: User) -> User:
+        self.db.delete(db_user)
+        self.db.commit()
 
-
-def get_user_service(
-    db: Session = Depends(get_db)
-) -> UserService:
-    return UserService(db)
+        return db_user
