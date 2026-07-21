@@ -37,25 +37,7 @@ class UserRepository:
         db_user = User(
             username=user_data.username,
             email=user_data.email,
-            hashed_password=hashed_password,  # Thêm hashed_password
-            role=user_data.role,
-            is_active=user_data.is_active
-        )
-
-        self.db.add(db_user)
-        self.db.commit()
-        self.db.refresh(db_user)
-
-        return db_user
-    def create(self, user_data: UserCreate, hashed_password: str) -> User:
-        """
-        Tạo user mới. 
-        Mật khẩu đã được băm (hashed_password) từ Service layer sẽ truyền vào đây.
-        """
-        db_user = User(
-            username=user_data.username,
-            email=user_data.email,
-            hashed_password=hashed_password,  # Thêm hashed_password
+            hashed_password=hashed_password, 
             role=user_data.role,
             is_active=user_data.is_active
         )
