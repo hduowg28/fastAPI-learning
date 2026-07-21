@@ -3,3 +3,5 @@ psycopg2-binary
 "fastapi[standard]"
 typing
 pydantic
+pydantic-settings
+python-dotenv
