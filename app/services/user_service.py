@@ -51,8 +51,6 @@ class UserService:
     def update_user(self, user_id: int, user_data: UserUpdate) -> User:
         user = self.get_user_by_id(user_id)
 
-        # Nếu trong UserUpdate có cập nhật password, nhớ băm trước khi update
-        # (Ví dụ: nếu user_data.password được gửi lên)
         if hasattr(user_data, "password") and user_data.password:
             user_data.password = hash_password(user_data.password)
 
