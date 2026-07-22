@@ -23,7 +23,7 @@ class BookService:
             )
         return book
     
-    async def create_book(self, book_data:BookCreate):
+    def create_book(self, book_data:BookCreate):
         existing_book = self.repo.check_duplicate(
             title=book_data.title,
             author_id=book_data.author_id,

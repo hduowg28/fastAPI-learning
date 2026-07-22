@@ -4,6 +4,7 @@ from app.api.author import router as author_router
 from app.api.category import router as category_router
 from app.api.user import router as user_router
 from app.api.borrow import router as borrow_router
+from app.api.auth import router as auth_router
 from app.core.database import verify_db_connection
 from contextlib import asynccontextmanager
 
@@ -25,6 +26,7 @@ app.include_router(author_router)
 app.include_router(category_router)
 app.include_router(user_router)
 app.include_router(borrow_router)
+app.include_router(auth_router)
 
 @app.get("/")
 def root():

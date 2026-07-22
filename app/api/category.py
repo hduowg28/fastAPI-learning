@@ -8,10 +8,6 @@ router = APIRouter(
     prefix="/categories",
     tags=["Categories"]
 )
-FAKE_CATEGORY=[
-        {"id":1,"name":"Programming", "description":"Books about software development"},
-        {"id":2, "name":"Fiction","description":"Literature and novels"}
-    ]
 @router.get("/", response_model=List[CategoryResponse])
 def get_categories(category_service: Category=Depends(get_category_service)):
     return category_service.get_all_categories()
