@@ -51,10 +51,20 @@ class UserService:
     def update_user(self, user_id: int, user_data: UserUpdate) -> User:
         user = self.get_user_by_id(user_id)
 
-        if hasattr(user_data, "password") and user_data.password:
-            user_data.password = hash_password(user_data.password)
+        # FIX: Tách trường 'password' (nếu có), băm mật khẩu và gán trực tiếp vào cột 'hashed_password' của model User.
+        # Trước đây gán user_data.password = hash_password(...) làm setattr(user, "password", ...) tạo thêm thuộc tính rác thay vì cập nhật cột hashed_password trong CSDL.
+        update_dict = user_data.model_dump(exclude_unset=True)
+        if "password" in update_dict:
+            raw_pwd = update_dict.pop("password")
+            if raw_pwd:
+                user.hashed_password = hash_password(raw_pwd)
 
-        return self.repo.update(user, user_data)
+        for key, value in update_dict.items():
+            setattr(user, key, value)
+
+        self.repo.db.commit()
+        self.repo.db.refresh(user)
+        return user
 
     def delete_user(self, user_id: int) -> User:
         user = self.get_user_by_id(user_id)

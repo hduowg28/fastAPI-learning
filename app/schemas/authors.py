@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional 
 
 class AuthorBase(BaseModel):
@@ -12,3 +12,6 @@ class AuthorUpdate(BaseModel):
 
 class AuthorResponse(AuthorBase):
     id: int
+    # FIX: Cấu hình from_attributes=True để Pydantic v2 có thể serialize đối tượng SQLAlchemy ORM Model trả về từ FastAPI API
+    model_config = ConfigDict(from_attributes=True)
+

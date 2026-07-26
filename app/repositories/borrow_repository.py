@@ -64,3 +64,15 @@ class BorrowRepository:
             )
             .first()
         )
+
+    # FIX: Bổ sung phương thức get_overdue_borrows tìm các lượt mượn quá hạn (return_date < hôm nay và status != 'returned')
+    def get_overdue_borrows(self) -> List[Borrow]:
+        from datetime import date
+        return (
+            self.db.query(Borrow)
+            .filter(
+                Borrow.return_date < date.today(),
+                Borrow.status != "returned"
+            )
+            .all()
+        )

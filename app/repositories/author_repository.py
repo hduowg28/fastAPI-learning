@@ -14,7 +14,7 @@ class AuthorRepository:
         return self.db.query(Author).filter(Author.id==author_id).first()
 
     def check_duplicate(self, author_id:int , name: str) ->Optional[Author]:
-        return self.query().filter(Author.id==author_id, Author.name.ilike(name)).first()
+        return self.db.query(Author).filter(Author.id==author_id, Author.name.ilike(name)).first()
     
     def create(self, data_author:AuthorCreate)-> Author:   
         db_author = Author(name = data_author.name)
@@ -25,7 +25,7 @@ class AuthorRepository:
     
     def update(self, db_author:Author, update_author:AuthorUpdate) -> Author:
         update_data = update_author.model_dump(exclude_unset=True)
-        for key, value in update_author:
+        for key, value in update_data.items():
             setattr(db_author, key, value)
         self.db.commit()
         self.db.refresh(db_author)

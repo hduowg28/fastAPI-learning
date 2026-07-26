@@ -33,7 +33,8 @@ class BookRepository:
         return db_book
 
     def update(self, db_book: Book, update_data: BookUpdate ) -> Book:
-        for key, value in update_data.items():
+        update_data_dict = update_data.model_dump(exclude_unset=True)
+        for key, value in update_data_dict.items():
             setattr(db_book, key, value)
         self.db.commit()
         self.db.refresh(db_book)

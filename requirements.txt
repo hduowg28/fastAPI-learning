@@ -1,7 +1,9 @@
 alembic
 psycopg2-binary
-"fastapi[standard]"
-typing
+fastapi[standard]
 pydantic
 pydantic-settings
 python-dotenv
+passlib[bcrypt]
+bcrypt
+python-jose[cryptography]

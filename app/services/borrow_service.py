@@ -55,7 +55,20 @@ class BorrowService:
                 detail="Book not found"
             )
 
-        # Có thể bổ sung kiểm tra mượn trùng ở đây nếu repository hỗ trợ
+        # FIX: Kiểm tra xem user có đang mượn cuốn sách này mà chưa trả hay không
+        active_borrow = self.repo.get_active_borrow(borrow_data.user_id, borrow_data.book_id)
+        if active_borrow:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User has already borrowed this book and not returned it yet"
+            )
+
+        # FIX: Kiểm tra ngày trả phải lớn hơn hoặc bằng ngày mượn
+        if borrow_data.return_date < borrow_data.borrow_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="return_date must be after or equal to borrow_date"
+            )
 
         return self.repo.create(borrow_data)
 
@@ -82,10 +95,15 @@ class BorrowService:
 
         return self.repo.update(borrow, BorrowUpdate(status="returned"))
 
+    # FIX: Bổ sung hàm get_overdue_borrows phục vụ endpoint GET /borrows/overdue
+    def get_overdue_borrows(self) -> List[Borrow]:
+        return self.repo.get_overdue_borrows()
+
     def delete_borrow(self, borrow_id: int) -> Borrow:
         borrow = self.get_borrow_by_id(borrow_id)
 
         return self.repo.delete(borrow)
+
 
 
 def get_borrow_service(

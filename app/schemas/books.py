@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class BookBase(BaseModel):
@@ -18,3 +18,5 @@ class BookUpdate(BaseModel):
 
 class BookResponse(BookBase):
     id:int
+    # FIX: Cấu hình from_attributes=True để Pydantic v2 serialize được đối tượng SQLAlchemy ORM Model
+    model_config = ConfigDict(from_attributes=True)

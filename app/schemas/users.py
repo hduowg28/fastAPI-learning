@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 
 class UserBase(BaseModel):
@@ -20,6 +20,9 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     id:int
+    # FIX: Cấu hình from_attributes=True để Pydantic v2 serialize được đối tượng SQLAlchemy ORM Model
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class Token(BaseModel):

@@ -7,4 +7,5 @@ class Author(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
 
-    book = relationship("Book", back_populates = "authors")
+    # FIX: Đổi tên quan hệ thành 'books' (1 Tác giả có nhiều Sách) và back_populates tham chiếu tới thuộc tính 'author' trong model Book
+    books = relationship("Book", back_populates="author")
