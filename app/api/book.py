@@ -30,7 +30,7 @@ def get_books(
 def get_book(book_id: int, service: BookService = Depends(get_book_service)):
     return service.get_book_by_id(book_id)
 
-@router.post("/", response_model=BookResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles("admin", "librarian"))])
+@router.post("/", response_model=BookResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles("admin"))])
 def create_book(book_data: BookCreate, service: BookService = Depends(get_book_service)):
     return service.create_book(book_data)
 
@@ -40,4 +40,4 @@ def update_book(book_id: int, book_data: BookUpdate, service: BookService = Depe
 
 @router.delete("/{book_id}", response_model=BookResponse, dependencies=[Depends(require_roles("admin", "librarian"))])
 def delete_book(book_id: int, service: BookService = Depends(get_book_service)):
-    return service.delete_book(book_id)
+    return service.delete_book(book_id)
