@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.book import router as book_router
 from app.api.author import router as author_router
 from app.api.category import router as category_router
@@ -21,6 +22,15 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(book_router)
 app.include_router(author_router)
 app.include_router(category_router)

@@ -16,8 +16,22 @@ class BookService:
         self.author_repo = AuthorRepository(db)
         self.category_repo = CategoryRepository(db)
 
-    def get_all_books(self):
-        return self.repo.get_all()
+    def get_all_books(
+        self,
+        skip: int = 0,
+        limit: int = 10,
+        title: str = None,
+        author_id: int = None,
+        category_id: int = None
+    ):
+        return self.repo.get_all(
+            skip=skip,
+            limit=limit,
+            title=title,
+            author_id=author_id,
+            category_id=category_id
+        )
+
     
     def get_book_by_id(self, book_id:int):
         book = self.repo.get_by_id(book_id)

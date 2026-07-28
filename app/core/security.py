@@ -32,4 +32,16 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
 
     return user
-    
+
+def require_roles(*allowed_roles: str):
+    """
+    Dependency kiểm tra vai trò (Role) của người dùng hiện tại.
+    """
+    def role_checker(current_user=Depends(get_current_user)):
+        if current_user.role.lower() not in [r.lower() for r in allowed_roles]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User role '{current_user.role}' is not authorized to access this resource"
+            )
+        return current_user
+    return role_checker

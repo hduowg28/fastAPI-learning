@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from app.schemas.categories import CategoryCreate, CategoryUpdate, CategoryResponse
-# FIX: Import đúng class 'CategoryService' từ category_service thay vì import 'Category'
 from app.services.category_service import CategoryService, get_category_service
+from app.core.security import require_roles
 from typing import List, Dict, Any
 
 router = APIRouter(
@@ -16,14 +16,15 @@ def get_categories(category_service: CategoryService = Depends(get_category_serv
 def get_category(category_id: int, category_service: CategoryService = Depends(get_category_service)):
     return category_service.get_category_by_id(category_id)
 
-@router.post("/", response_model=CategoryResponse)
+@router.post("/", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles("admin", "librarian"))])
 def create_categories(category_data: CategoryCreate, category_service: CategoryService = Depends(get_category_service)):
     return category_service.create_category(category_data)
 
-@router.put("/{category_id}", response_model=CategoryResponse)
+@router.put("/{category_id}", response_model=CategoryResponse, dependencies=[Depends(require_roles("admin", "librarian"))])
 def update_category(category_id: int, category_data: CategoryUpdate, category_service: CategoryService = Depends(get_category_service)):
     return category_service.update_category(category_id, category_data)    
 
-@router.delete("/{category_id}", response_model=CategoryResponse)
+@router.delete("/{category_id}", response_model=CategoryResponse, dependencies=[Depends(require_roles("admin", "librarian"))])
 def delete_category(category_id: int, category_service: CategoryService = Depends(get_category_service)):
-    return category_service.delete_category(category_id)
+    return category_service.delete_category(category_id)
+

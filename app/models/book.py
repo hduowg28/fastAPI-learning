@@ -9,6 +9,9 @@ class Book(Base):
     author_id  = Column(Integer, ForeignKey("authors.id"))
     category_id = Column(Integer, ForeignKey("categories.id"))
     published_year = Column(Integer)
+    quantity = Column(Integer, default=1, nullable=False)
+    available_quantity = Column(Integer, default=1, nullable=False)
+
     # FIX: Khai báo back_populates='books' trỏ đúng tới thuộc tính 'books' vừa sửa trong model Author
     author = relationship("Author", back_populates="books")
     category  = relationship("Category", back_populates="books")

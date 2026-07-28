@@ -1,10 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from app.schemas.authors import AuthorCreate, AuthorUpdate, AuthorResponse
 from app.models.author import Author
-
-# Import class và hàm dependency từ file service
 from app.services.author_service import AuthorService, get_author_service
+from app.core.security import require_roles
 
 router = APIRouter(
     prefix="/authors",
@@ -19,14 +18,14 @@ def get_authors(service: AuthorService = Depends(get_author_service)):
 def get_author(author_id: int, service: AuthorService = Depends(get_author_service)):
     return service.get_author_by_id(author_id)
 
-@router.post("/", response_model=AuthorResponse)
+@router.post("/", response_model=AuthorResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles("admin", "librarian"))])
 def create_author(author_data: AuthorCreate, service: AuthorService = Depends(get_author_service)):
     return service.create_author(author_data)
 
-@router.put("/{author_id}", response_model=AuthorResponse)
+@router.put("/{author_id}", response_model=AuthorResponse, dependencies=[Depends(require_roles("admin", "librarian"))])
 def update_author(author_id: int, author_data: AuthorUpdate, service: AuthorService = Depends(get_author_service)):
     return service.update_author(author_id, author_data)
 
-@router.delete("/{author_id}", response_model=AuthorResponse)
+@router.delete("/{author_id}", response_model=AuthorResponse, dependencies=[Depends(require_roles("admin", "librarian"))])
 def delete_author(author_id: int, service: AuthorService = Depends(get_author_service)):
-    return service.delete_author(author_id)
+    return service.delete_author(author_id)

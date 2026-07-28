@@ -55,6 +55,12 @@ class BorrowService:
                 detail="Book not found"
             )
 
+        if book.available_quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Book is out of stock (no available copies)"
+            )
+
         # FIX: Kiểm tra xem user có đang mượn cuốn sách này mà chưa trả hay không
         active_borrow = self.repo.get_active_borrow(borrow_data.user_id, borrow_data.book_id)
         if active_borrow:
@@ -69,6 +75,10 @@ class BorrowService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="return_date must be after or equal to borrow_date"
             )
+
+        # Trừ số lượng khả dụng
+        book.available_quantity -= 1
+        self.book_repo.db.commit()
 
         return self.repo.create(borrow_data)
 
@@ -91,9 +101,16 @@ class BorrowService:
                 detail="Book was already returned"
             )
 
+        # Cộng lại số lượng khả dụng cho sách
+        book = self.book_repo.get_by_id(borrow.book_id)
+        if book:
+            book.available_quantity += 1
+
         borrow.status = "returned"
+        self.repo.db.commit()
 
         return self.repo.update(borrow, BorrowUpdate(status="returned"))
+
 
     # FIX: Bổ sung hàm get_overdue_borrows phục vụ endpoint GET /borrows/overdue
     def get_overdue_borrows(self) -> List[Borrow]:
