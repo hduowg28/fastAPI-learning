@@ -5,5 +5,8 @@ pydantic
 pydantic-settings
 python-dotenv
 passlib[bcrypt]
-bcrypt
-python-jose[cryptography]
+bcrypt==4.0.1
+python-jose[cryptography]
+pytest
+httpx
+
