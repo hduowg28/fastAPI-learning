@@ -10,6 +10,11 @@ use ``` alembic revision --autogenerate -m "Initial migration" ``` to run alembi
 
 use ``` alembic upgrade head ``` to post table structure into database
 
+use ``` pytest -v ``` to run all Test Suite
+
+use ``` pytest tests/test_auth.py -v ``` to run a specific Test File
+
+
 ---
 
 # Tech Stack
