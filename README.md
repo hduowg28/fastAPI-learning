@@ -307,8 +307,8 @@ FastAPI automatically generates
 - [x] FastAPI Basics
 - [x] SQLAlchemy
 - [x] CRUD
-- [ ] Authentication
-- [ ] Docker
+- [x] Authentication
+- [x] Docker
 - [ ] Redis
-- [ ] Testing
+- [x] Testing
 - [ ] Deployment
